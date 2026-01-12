@@ -134,6 +134,7 @@ fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
 fwver=$(crossystem act_fwver)
 
+sleep 1
 # -----------------------------------------
 
 # is swwp disabled??
@@ -147,6 +148,7 @@ fi
 
 # is hwwp disabled? doesnt matter much anyways, only there for debug info lol
 hwwpc=$(crossystem wpsw_cur)>/dev/null 2>&1
+sleep 1
 if [ "hwwpc" = "0" ]; then
     hwwp="off"
     clear
