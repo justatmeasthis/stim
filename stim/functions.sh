@@ -296,7 +296,7 @@ flags=$(calculate_gbb_mask)
     while true; do
         clear
         clean
-        echo -e "Write flags $flags?"
+        echo -e "Write flags $flags? (Y/N)"
         read -n 1 -rp "Enter: " gbbask
         if [ "$gbbask" = "Y" ] || [ "$gbbask" = "y" ]; then
             clear
