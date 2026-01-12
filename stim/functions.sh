@@ -260,7 +260,11 @@ stty -echo -icanon time 0 min 0
 while true; do
   draw
 
-  read -rsn1 key
+    if ! read -rsn1 key; then
+        clean
+        return 1
+    fi
+
 
   case "$key" in
     q)
@@ -360,8 +364,8 @@ read_current_flags() {
 declare -A picked
 
 clean() {
-  stty sane
-  tput cnorm
+  stty sane 2>/dev/null
+  tput cnorm 2>/dev/null
 }
 
 draw() {
