@@ -217,7 +217,7 @@ wpdisloop() {
 
 
 
-# gbbflagger, basically is like a bash port of olybs gbbflaginator, planning to remaster it for easier UI
+# gbbflagger, a bash port of olybs gbb flaginator
 gbbflagger() {
 items=(
     "Shorten dev screen timeout to 2 seconds"
@@ -250,7 +250,8 @@ current=0
 
 
 
-trap clean EXIT
+trap clean RETURN
+
 
 # Terminal setup
 tput civis
