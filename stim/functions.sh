@@ -189,7 +189,7 @@ daub() {
 unkeyroll() {
     echo -e "${RED}Flashing key${RESET}"
     sleep 2
-    futility gbb -s --flash --recoverykey="$fullpath/dedede_recovery_v1.vbpubk">/dev/null 2>&1
+    futility gbb -s --flash --r="$fullpath/dedede_recovery_v1.vbpubk">/dev/null 2>&1
     clear
     echo "done!"
     sleep 1
