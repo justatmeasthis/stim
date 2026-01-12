@@ -162,7 +162,7 @@ hwid=$(crossystem hwid)
 fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
 fwver=$(crossystem act_fwver)
-
+gbbfldbg=$(read_current_flags)
 sleep 1
 # -----------------------------------------
 
@@ -184,35 +184,6 @@ if [ "hwwpc" = "0" ]; then
 else
     hwwp="on"
     clear
-fi
-
-# Check to see if where we at and warn if not in right place
-fullpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-if [ "fullpath" = "/usr/sbin" ]; then
-    test='0'
-    
-else
-    test="1"
-    while true; do
-        clear
-        echo -e "${RED}Warning:${RESET} you are currently running this in the wrong place, some features will be disabled and will be marked unusable via a red text mark, continue? (Y/N)"
-        read -n 1 -rp "Enter: " testwarn
-        if [ "$testwarn" = "Y" ] || [ "$testwarn" = "y" ]; then
-            clear
-            echo "test mode is on, certain scripts wont work."
-            sleep 3
-            break
-        elif [ "$testwarn" = "N" ] || [ "$testwarn" = "n" ]; then
-            clear
-            echo "exiting script, sorry twin"
-            sleep 1
-            exit
-        else
-            clear
-            echo "Invalid input, please try again."
-            sleep 1
-        fi
-    done
 fi
 
 # hub tui WILL BE REPLACED ONCE NULL GETS THE GUI RIGHT
