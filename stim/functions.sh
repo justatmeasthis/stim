@@ -187,25 +187,14 @@ daub() {
 
 # unkeyroll payload, literally just uses the futility command to roll the keys back to what it used to be
 unkeyroll() {
-    while true; do
-        echo -e "\e[31mFlashing key\e[0m"
-        futility gbb -s --flash --recoverykey="$fullpath/$RECOVERY_KEY_FILE"
-        clear
-
-        # Check if application was successful
-        if [ $? -eq 0 ]; then
-            echo -e "\033[32mApplied the recovery key successfully, yippee!!\033[0m"
-            sleep 3
-            break
-        else
-            echo -e "\e[31mFailed. Trying to fix chromebook, please wait.\e[0m"
-                echo -e "\e[31mThis shouldn't ever happen!\e[0m"
-            # Clear the vbpubk files from the Downloads folder only if the previous command fails
-            exit 1
-            sleep 3
-            break
-        fi
-    done
+    RECOVERY_KEY_FILE=dedede_recovery_v1.vbpubk
+    echo -e "${RED}Flashing key${RESET}"
+    sleep 2
+    futility gbb -s --flash --recoverykey="$fullpath/$RECOVERY_KEY_FILE>/dev/null 2>&1"
+    clear
+    echo "done!"
+    sleep 1
+    break
 }
 
 # wpdisloop payload, all it does is count how many times it tried disabling wp (really only useful for pencil method)
