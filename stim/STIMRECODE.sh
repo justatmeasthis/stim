@@ -15,45 +15,12 @@ BOLD='\e[1m'
 RESET='\e[0m'
 BRIGHT_BLUE='\e[96m'
 
-# is wp disabled??
-if flashrom --wp-disable>/dev/null 2>&1; then
-    wp="off"
-    clear
-else
-    wp="on"
-    clear
-fi
-# Check to see if where we at and warn if not in right place
-fullpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-if [ "fullpath" = "/usr/sbin" ]; then
-    test='0'
-    
-else
-    test="1"
-    while true; do
-        clear
-        echo -e "${RED}Warning:${RESET} you are currently running this in the wrong place, some features will be disabled and will be marked unusable via a red text mark, continue? (Y/N)"
-        read -n 1 -rp "Enter: " testwarn
-        if [ "$testwarn" = "Y" ] || [ "$testwarn" = "y" ]; then
-            clear
-            echo "test mode is on, certain scripts wont work."
-            sleep 3
-            break
-        elif [ "$testwarn" = "N" ] || [ "$testwarn" = "n" ]; then
-            clear
-            echo "exiting script, sorry twin"
-            sleep 1
-            exit
-        else
-            clear
-            echo "Invalid input, please try again."
-            sleep 1
-        fi
-    done
-fi
-# GET FUNCTIONS 
+# --------------GET FUNCTIONS--------------
+
 source $fullpath/functions.sh
+
 # ASCII ART FUNCTIONS
+
 daubascii() {
     echo -e "${YELLOW} ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄"
     echo -e "▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░▌ "
@@ -153,7 +120,72 @@ eyeascii() {
     echo -e ""
 }
 
-# hub placeholder
+# --------------DEBUG INFO!!!--------------
+
+milestone=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_CHROME_MILESTONE")
+verison=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_DESCRIPTION")
+snvpd=$(vpd -i RO_VPD -l  | head -n 6 | tail -n 1)
+sdsdns=$(vpd -i RO_VPD -l  | tail -n 1)
+kernver=$(crossystem tpm_kernver)
+dbu=$(crossystem dev_boot_usb)
+dba=$(crossystem dev_boot_altfw)
+hwid=$(crossystem hwid)
+fwid=$(crossystem fwid)
+ro_fwid=$(crossystem ro_fwid)
+fwver=$(crossystem act_fwver)
+gbbfldbg=$(read_current_flags)
+
+# -----------------------------------------
+
+# is swwp disabled??
+if flashrom --wp-disable>/dev/null 2>&1; then
+    wp="off"
+    clear
+else
+    wp="off"
+    clear
+fi
+
+# is hwwp disabled? doesnt matter much anyways, only there for debug info lol
+hwwpc=$(crossystem wpsw_cur)>/dev/null 2>&1
+if [ "hwwpc" = "0" ]; then
+    hwwp="off"
+    clear
+else
+    hwwp="on"
+    clear
+fi
+
+# Check to see if where we at and warn if not in right place
+fullpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+if [ "fullpath" = "/usr/sbin" ]; then
+    test='0'
+    
+else
+    test="1"
+    while true; do
+        clear
+        echo -e "${RED}Warning:${RESET} you are currently running this in the wrong place, some features will be disabled and will be marked unusable via a red text mark, continue? (Y/N)"
+        read -n 1 -rp "Enter: " testwarn
+        if [ "$testwarn" = "Y" ] || [ "$testwarn" = "y" ]; then
+            clear
+            echo "test mode is on, certain scripts wont work."
+            sleep 3
+            break
+        elif [ "$testwarn" = "N" ] || [ "$testwarn" = "n" ]; then
+            clear
+            echo "exiting script, sorry twin"
+            sleep 1
+            exit
+        else
+            clear
+            echo "Invalid input, please try again."
+            sleep 1
+        fi
+    done
+fi
+
+# hub tui WILL BE REPLACED ONCE NULL GETS THE GUI RIGHT
 
 while true; do
     clear
@@ -241,9 +273,19 @@ while true; do
 
                         5)
                             clear
-                            echo "This will show some debug info on chrome os like the milestone, kernver, fwmp setting, vpd, current fw, hwid, and more."
-                            sleep 1
-                            clear
+                            echo "$milestone"
+                            echo "$version"
+                            echo "$snvpd"
+                            echo "$sdsdns"
+                            echo "kernver = $kernver"
+                            echo "allow dev_boot_usb = $dbu"
+                            echo "allow dev_boot_altfw = $dba"
+                            echo "HWID = $hwid"
+                            echo "FWID = $fwid"
+                            echo "RO_FWID = $ro_fwid"
+                            echo "curtpmfwver = $fwver"
+                            echo "gbb flags = $gbbfldbg"
+                            read -n 1 -rp "Press any key to exit: "
                         ;;
 
                         6)
@@ -279,7 +321,7 @@ while true; do
 
                         2)
                             clear
-                            echo "This will show some debug info on chrome os like the milestone, kernver, fwmp setting, vpd, current fw, hwid, and more."
+                            
                             sleep 1
                             clear
                         ;;
