@@ -123,7 +123,7 @@ eyeascii() {
 # --------------DEBUG INFO!!!--------------
 
 milestone=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_CHROME_MILESTONE")
-verison=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_DESCRIPTION")
+version=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_DESCRIPTION")
 snvpd=$(vpd -i RO_VPD -l  | head -n 6 | tail -n 1)
 sdsdns=$(vpd -i RO_VPD -l  | tail -n 1)
 kernver=$(crossystem tpm_kernver)
@@ -285,7 +285,10 @@ while true; do
                             echo "RO_FWID = $ro_fwid"
                             echo "curtpmfwver = $fwver"
                             echo "gbb flags = $gbbfldbg"
-                            read -n 1 -rp "Press any key to exit: "
+                            
+                            echo "This will show some debug info on chrome os like the milestone, kernver, fwmp setting, vpd, current fw, hwid, and more."
+                            sleep 1
+                            clear
                         ;;
 
                         6)
