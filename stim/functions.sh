@@ -187,10 +187,9 @@ daub() {
 
 # unkeyroll payload, literally just uses the futility command to roll the keys back to what it used to be
 unkeyroll() {
-    RECOVERY_KEY_FILE=dedede_recovery_v1.vbpubk
     echo -e "${RED}Flashing key${RESET}"
     sleep 2
-    futility gbb -s --flash --recoverykey="$fullpath/$RECOVERY_KEY_FILE">/dev/null 2>&1
+    futility gbb -s --flash --recoverykey="$fullpath/dedede_recovery_v1.vbpubk">/dev/null 2>&1
     clear
     echo "done!"
     sleep 1
