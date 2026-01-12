@@ -162,8 +162,10 @@ hwid=$(crossystem hwid)
 fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
 fwver=$(crossystem act_fwver)
-gbbfldbg=$(read_current_flags)
-sleep 1
+gbbfldbg=$(futility gbb -g --flash --flags 2>/dev/null \
+| tail -n 1 \
+| grep -oE '0x[0-9a-fA-F]+')
+
 # -----------------------------------------
 
 # is swwp disabled??
@@ -177,7 +179,6 @@ fi
 
 # is hwwp disabled? doesnt matter much anyways, only there for debug info lol
 hwwpc=$(crossystem wpsw_cur)>/dev/null 2>&1
-sleep 1
 if [ "hwwpc" = "0" ]; then
     hwwp="off"
     clear
@@ -286,9 +287,7 @@ while true; do
                             echo "RO_FWID = $ro_fwid"
                             echo "curtpmfwver = $fwver"
                             echo "gbb flags = $gbbfldbg"
-                            
-                            echo "This will show some debug info on chrome os like the milestone, kernver, fwmp setting, vpd, current fw, hwid, and more."
-                            sleep 1
+                            read -n 1 -rp "Press any key to exit :D"
                             clear
                         ;;
 
