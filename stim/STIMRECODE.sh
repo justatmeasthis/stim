@@ -16,11 +16,11 @@ RESET='\e[0m'
 BRIGHT_BLUE='\e[96m'
 
 # is wp disabled??
-if flashrom --wp-disable; then
+if flashrom --wp-disable>/dev/null 2>&1; then
     wp="off"
     clear
 else
-    wp="off"
+    wp="on"
     clear
 fi
 # Check to see if where we at and warn if not in right place
