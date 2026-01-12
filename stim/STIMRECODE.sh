@@ -133,7 +133,6 @@ hwid=$(crossystem hwid)
 fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
 fwver=$(crossystem act_fwver)
-gbbfldbg=$(read_current_flags)
 
 # -----------------------------------------
 
