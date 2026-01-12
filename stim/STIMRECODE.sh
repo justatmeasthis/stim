@@ -20,7 +20,7 @@ if flashrom --wp-disable; then
     wp="off"
     clear
 else
-    wp="on"
+    wp="off"
     clear
 fi
 # Check to see if where we at and warn if not in right place
@@ -51,9 +51,8 @@ else
         fi
     done
 fi
-# GET FUNCTIONS FROM OTHER PAYLOADS
-source $fullpath/enrollman.sh
-source $fullpath/daub.sh
+# GET FUNCTIONS 
+source $fullpath/functions.sh
 # ASCII ART FUNCTIONS
 daubascii() {
     echo -e "${YELLOW} ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄"
@@ -153,7 +152,9 @@ eyeascii() {
     echo -e "                                                         %%%%%################################%%%%%"${RESET}
     echo -e ""
 }
+
 # hub placeholder
+
 while true; do
     clear
     stimascii
@@ -261,13 +262,14 @@ while true; do
                     echo
                     echo "1) WP Disable loop"
                     echo "2) Debug info"
-                    echo "3 FW manager (No full rom overwrite)"
+                    echo "3) FW manager (No full rom overwrite)"
                     echo "4) Bash shell"
                     echo "5) back"
                     read -n 1 -rp "Enter: " wponadvoptions
                     case $wponadvoptions in
 
                         1)
+                            clear
                             echo "Executing wp disable loop..."
                             sleep 1
                             clear
