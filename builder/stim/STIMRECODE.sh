@@ -15,11 +15,12 @@ BOLD='\e[1m'
 RESET='\e[0m'
 BRIGHT_BLUE='\e[96m'
 
-# Check to see if where we at and warn if not in right place
+# --------------MINI OS DETECTOR--------------
+
 fullpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-if [ "fullpath" = "/usr/sbin" ]; then
-    test='0'
-    
+amiinchromeos=$(crossystem minios_priority | head -n 2 | tail -n 1)
+if [ "$amiinchromeos" = "Usage:"]; then
+    test='0'    
 else
     test="1"
     while true; do
@@ -47,8 +48,6 @@ fi
 # --------------GET FUNCTIONS--------------
 
 source $fullpath/functions.sh
-
-# ASCII ART FUNCTIONS
 
 daubascii() {
     echo -e "${YELLOW} ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄"
