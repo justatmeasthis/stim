@@ -159,7 +159,7 @@ crte_steful() {
 	"$CGPT" add "$LOOPDEV" -i 1 -b $((final_sector + 1)) -s $((STATE_SIZE / sector_size)) -t data
 	partx -u -n 1 "$LOOPDEV"
 	suppress mkfs.ext4 -F -L stim "$LOOPDEV"p1
-	safesync
+	ss
 }
 
 inject_stateful() {
