@@ -28,10 +28,14 @@ ROOT_MNT="$(mktemp -d)"
 LOOPDEV="$(losetup -f)"
 IMG="$1"
 
-echo "creds 2 merc workshop & kvs project, and kxtz. im highkey too lazy to code this on my own so i took it for my self, ty!!"
+echo "creds 2 olyb & kxtz. im highkey too lazy to code this on my own so i took it for my self, ty!!"
 
 sleep 1
 clear
+# Since the files arent writable unless you do "make kvs" (which if you cant tell we're in stim not kvs) we have to give execute perms to these bins
+log "giving write perms lol"
+chmod +x $SCRIPT_DIR/bins/cgpt.x86-64
+chmod +x $SCRIPT_DIR/bins/sfdisk.x86-64
 # we need this before we re-create stateful
 STATE_START=$("$CGPT" show "$IMG" | grep "STATE" | awk '{print $1}')
 suppress srnk_part "$IMG"
