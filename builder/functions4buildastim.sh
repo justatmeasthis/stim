@@ -48,7 +48,7 @@ clean() {
 
 
 suppress() {
-	if [ "${FLAGS_debug:-0}" = "${FLAGS_TRUE:-1}" ]; then
+	if [ "$nosuppress" = "nosuppress" ]; then
 		"$@"
 	else
 		"$@" &>/dev/null
