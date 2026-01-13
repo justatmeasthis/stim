@@ -158,7 +158,7 @@ hwid=$(crossystem hwid)
 fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
 fwver=$(crossystem tpm_fwver)
-gbbfldbg=$(futility gbb -g --flash --flags 2>/dev/null \
+gbbfldbg=$(futility gbb -g --flags "${image_file}" 2>/dev/null \
 | tail -n 1 \
 | grep -oE '0x[0-9a-fA-F]+')
 
@@ -271,13 +271,10 @@ while true; do
 
                         5)
                             clear
-                            echo "$milestone"
-                            echo "$version"
                             echo "$snvpd"
                             echo "$sdsdns"
                             echo "kernver = $kernver"
                             echo "allow dev_boot_usb = $dbu"
-                            echo "allow dev_boot_altfw = $dba"
                             echo "HWID = $hwid"
                             echo "FWID = $fwid"
                             echo "RO_FWID = $ro_fwid"
