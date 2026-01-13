@@ -1,0 +1,263 @@
+#!/bin/bash
+
+COLOR_RESET="\033[0m"
+COLOR_BLACK_B="\033[1;30m"
+COLOR_RED="\033[0;31m"
+COLOR_RED_B="\033[1;31m"
+COLOR_GREEN="\033[0;32m"
+COLOR_GREEN_B="\033[1;32m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_YELLOW_B="\033[1;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_BLUE_B="\033[1;34m"
+COLOR_MAGENTA="\033[0;35m"
+COLOR_MAGENTA_B="\033[1;35m"
+COLOR_CYAN="\033[0;36m"
+COLOR_CYAN_B="\033[1;36m"
+
+error() {
+	printf "${COLOR_RED_B}ERR: %b${COLOR_RESET}\n" "$*" >&2 || :
+	printf "${COLOR_RED}Exiting... ${COLOR_RESET}\n" >&2 || :
+	exit 1
+}
+
+readlink /proc/$$/exe | grep -q bash || error "You MUST execute this with Bash!"
+
+ss() {
+	sync
+	sleep 0.2
+}
+
+log() {
+	printf "%b\n" "${COLOR_BLUE_B}Info: $*${COLOR_RESET}"
+}
+
+
+clean() {
+	suppress umount "$ROOT_MNT"
+	rm -rf "$ROOT_MNT"
+	
+	suppress umount "$STATE_MNT"
+	rm -rf "$STATE_MNT"
+	
+	suppress umount -R "$LOOPDEV"*
+	
+	losetup -d "$LOOPDEV"
+	losetup -D #in case of cmd above failing
+}
+
+
+suppress() {
+	if [ "${FLAGS_debug:-0}" = "${FLAGS_TRUE:-1}" ]; then
+		"$@"
+	else
+		"$@" &>/dev/null
+	fi
+}
+
+get_sector_size() {
+	"$SFDISK" -l "$1" | grep "Sector size" | awk '{print $4}'
+}
+
+get_final_sector() {
+	"$SFDISK" -l -o end "$1" | grep "^\s*[0-9]" | awk '{print $1}' | sort -nr | head -n 1
+}
+
+is_ext2() {
+	local rootfs="$1"
+	local offset="${2-0}"
+
+	local sb_magic_offset=$((0x438))
+	local sb_value=$(dd if="$rootfs" skip=$((offset + sb_magic_offset)) \
+		count=2 bs=1 2>/dev/null)
+	local expected_sb_value=$(printf '\123\357')
+	if [ "$sb_value" = "$expected_sb_value" ]; then
+		return 0
+	fi
+	return 1
+}
+
+enable_rw_mount() {
+	local rootfs="$1"
+	local offset="${2-0}"
+
+	if ! is_ext2 "$rootfs" $offset; then
+		echo "enable_rw_mount called on non-ext2 filesystem: $rootfs $offset" 1>&2
+		return 1
+	fi
+
+	local ro_compat_offset=$((0x464 + 3))
+	printf '\000' |
+		dd of="$rootfs" seek=$((offset + ro_compat_offset)) \
+			conv=notrunc count=1 bs=1 2>/dev/null
+}
+
+disable_rw_mount() {
+	local rootfs="$1"
+	local offset="${2-0}"
+
+	if ! is_ext2 "$rootfs" $offset; then
+		echo "disable_rw_mount called on non-ext2 filesystem: $rootfs $offset" 1>&2
+		return 1
+	fi
+
+	local ro_compat_offset=$((0x464 + 3))
+	printf '\377' |
+		dd of="$rootfs" seek=$((offset + ro_compat_offset)) \
+			conv=notrunc count=1 bs=1 2>/dev/null
+}
+
+srnk_part() {
+	local shim="$1"
+	fdisk "$shim" <<EOF
+d
+12
+d
+11
+d
+10
+d
+9
+d
+8
+d
+7
+d
+6
+d
+5
+d
+4
+d
+1
+w
+EOF
+}
+
+trnk_img() {
+	local buffer=35
+	local sector_size=$("$SFDISK" -l "$1" | grep "Sector size" | awk '{print $4}')
+	local final_sector=$(get_final_sector "$1")
+	local end_bytes=$(((final_sector + buffer) * sector_size))
+
+	log "Truncating image to $(format_bytes "$end_bytes")"
+	truncate -s "$end_bytes" "$1"
+
+	# recreate backup gpt table/header
+	suppress sgdisk -e "$1" 2>&1 | sed 's/\a//g'
+}
+
+format_bytes() {
+	numfmt --to=iec-i --suffix=B "$@"
+}
+
+
+crte_steful() {
+	log "creating state part"
+	local final_sector=$(get_final_sector "$LOOPDEV")
+	local sector_size=$(get_sector_size "$LOOPDEV")
+	"$CGPT" add "$LOOPDEV" -i 1 -b $((final_sector + 1)) -s $((STATE_SIZE / sector_size)) -t data
+	partx -u -n 1 "$LOOPDEV"
+	suppress mkfs.ext4 -F -L KVS "$LOOPDEV"p1
+	safesync
+}
+
+inject_stateful() {
+	log "Injecting state part"
+	
+	echo "Mounting stateful.."
+	mount "$LOOPDEV"p1 "$STATE_MNT"
+	echo "Copying files.."
+	mkdir -p "${STATE_MNT}/dev_image/etc"
+	touch "${STATE_MNT}/dev_image/etc/lsb-factory"
+	umount "$STATE_MNT"
+}
+
+srnk_rt() {
+	log "Shrinking ROOT-A Partition"
+
+	enable_rw_mount "${LOOPDEV}p3"
+	suppress e2fsck -fy "${LOOPDEV}p3"
+	suppress resize2fs -M "${LOOPDEV}p3"
+	disable_rw_mount "${LOOPDEV}p3"
+
+	local sector_size=$(get_sector_size "$LOOPDEV")
+	local block_size=$(tune2fs -l "${LOOPDEV}p3" | grep "Block size" | awk '{print $3}')
+	local block_count=$(tune2fs -l "${LOOPDEV}p3" | grep "Block count" | awk '{print $3}')
+
+	local original_sectors=$("$CGPT" show -i 3 -s -n -q "$LOOPDEV")
+	local original_bytes=$((original_sectors * sector_size))
+
+	local resized_bytes=$((block_count * block_size))
+	local resized_sectors=$((resized_bytes / sector_size))
+
+	echo "Resizing ROOT from $(format_bytes ${original_bytes}) to $(format_bytes ${resized_bytes})"
+	"$CGPT" add -i 3 -s "$resized_sectors" "$LOOPDEV"
+	partx -u -n 3 "$LOOPDEV"
+}
+
+detect_arch() {
+	MNT_ROOT=$(mktemp -d)
+	mount -o ro "${LOOPDEV}p3" "$MNT_ROOT"
+
+	TARGET_ARCH=x86_64
+	if [ -f "$MNT_ROOT/bin/bash" ]; then
+		case "$(file -b "$MNT_ROOT/bin/bash" | awk -F ', ' '{print $2}' | tr '[:upper:]' '[:lower:]')" in
+			# for now assume arm has aarch64 kernel
+			# this only assumes since theres no armv7 (arm32) shims leaked
+			*aarch64* | *armv8* | *arm*) TARGET_ARCH=aarch64 ;;
+		esac
+	fi
+	echo "Detected architecture: $TARGET_ARCH"
+
+	umount "$MNT_ROOT"
+	rmdir "$MNT_ROOT"
+}
+
+injcrt() {
+	log "Injecting ROOT-A Partition"
+	detect_arch
+
+	if [[ ! -d "$SCRIPT_DIR/../build/$TARGET_ARCH" ]]; then
+		echo "You need to build stim for $TARGET_ARCH first!"
+		losetup -D
+
+		exit 1
+	fi
+	
+	echo "Mounting root.."
+	suppress enable_rw_mount "$LOOPDEV"p3
+	suppress mount "$LOOPDEV"p3 "$ROOT_MNT"
+	echo "Copying files.."
+	cp -r "$SCRIPT_DIR/../build/$TARGET_ARCH/." "$ROOT_MNT"
+	suppress cp -r "$SCRIPT_DIR/root/factory_install.sh" "$ROOT_MNT/usr/sbin/factory_install.sh"
+	suppress cp -r "$SCRIPT_DIR/root/dedede_recovery_v1.vbpubk" "$ROOT_MNT/usr/sbin/dedede_recovery_v1.vbpubk"
+
+	# echo "Removing tcsd & trunksd.."
+	# rm -rf "$ROOT_MNT"/etc/init/tcsd.conf
+	# rm -rf "$ROOT_MNT"/etc/init/trunksd.conf
+
+	echo "$(date +'%m-%d-%Y %I:%M%p %Z')" > "$ROOT_MNT"/DATE_COMPILED
+	suppress umount "$ROOT_MNT"
+}
+
+get_parts_physical_order() {
+	local part_table=$("$CGPT" show -q "$1")
+	local physical_parts=$(awk '{print $1}' <<<"$part_table" | sort -n)
+	for part in $physical_parts; do
+		grep "^\s*${part}\s" <<<"$part_table" | awk '{print $3}'
+	done
+}
+
+sqsh_part() {
+	log "Squashing partitions"
+
+	for part in $(get_parts_physical_order "$1"); do
+		echo "Squashing ${1}p${part}"
+		suppress "$SFDISK" -N "$part" --move-data "$1" <<<"+,-" || :
+	done
+}
+
+uma() {
+	suppress umount -R "$LOOPDEV"*
+}
