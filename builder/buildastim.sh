@@ -36,7 +36,7 @@ echo "creds 2 olyb & kxtz. im highkey too lazy to code this on my own so i took 
 echo 'Want debug info? add the -nosuppress flag like this "sudo bash /path/to/buildastim.sh/ /path/to/bin/ -nosuppress" when executing this script!'
 sleep 3
 clear
-# Since the files arent writable unless you do "make kvs" (which if you cant tell we're in stim not kvs) we have to give execute perms to these bins
+# Since the bin files arent writable unless you do "make kvs" (which if you cant tell we're in stim not kvs) we have to give execute perms to these bins
 log "giving write perms lol"
 chmod +x $SCRIPT_DIR/bins/cgpt.x86-64
 chmod +x $SCRIPT_DIR/bins/sfdisk.x86-64
