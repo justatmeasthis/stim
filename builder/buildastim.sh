@@ -2,10 +2,12 @@
 
 if [ "$2" = "-nosuppress" ]; then
 	nosuppress="nosuppress"
+else
+	nosuppress="false"
 fi
 
 SCRIPT_DIR=$(dirname "$0")
-VERSION=1.0.0
+VERSION=1.0.5
 HOST_ARCH=$(uname -m)
 
 if [ $HOST_ARCH == "x86_64" ]; then
@@ -32,8 +34,12 @@ ROOT_MNT="$(mktemp -d)"
 LOOPDEV="$(losetup -f)"
 IMG="$1"
 
-echo "creds 2 olyb & kxtz. im highkey too lazy to code this on my own so i took it for my self, ty!!"
-echo 'Want debug info? add the -nosuppress flag like this "sudo bash /path/to/buildastim.sh/ /path/to/bin/ -nosuppress" when executing this script!'
+echo "creds 2 olyb & kxtz for this builder script. im highkey too lazy to code this on my own so i took it for my self, ty!!"
+if [ $nosuppress = "nosuppress" ]; then
+	echo "no suppress flag activated :D" 
+else
+	echo 'Want more info on whats going on? add the -nosuppress flag like this "sudo bash /path/to/buildastim.sh/ /path/to/bin/ -nosuppress" when executing this script!'
+fi
 sleep 3
 clear
 # Since the bin files arent writable unless you do "make kvs" (which if you cant tell we're in stim not kvs) we have to give execute perms to these bins
