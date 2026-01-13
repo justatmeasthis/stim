@@ -187,6 +187,7 @@ daub() {
 
 # unkeyroll payload, literally just uses the futility command to roll the keys back to what it used to be
 unkeyroll() {
+    echo "Hey twin, unkeyrolling is kinda useless if your running this rn, ill start the script in 6 seconds, if you change your mind in the meantime, press CTRL+C"
     echo -e "${RED}Flashing key${RESET} DO NOT POWER OFF OR CTRL + C"
     sleep 2
     image_file="${FLAGS_file}"
@@ -232,8 +233,10 @@ wpdisloop() {
     done
 }
 
-
-
+ic() {
+    tput civis
+    stty -echo -icanon time 0 min 0
+}
 # gbbflagger, a bash port of olybs gbb flaginator
 gbbflagger() {
 items=(
