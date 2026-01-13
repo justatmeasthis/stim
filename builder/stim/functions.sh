@@ -259,7 +259,7 @@ if [ -z "${image_file}" ]; then
     image_file="$(make_temp_file)"
     flashrom_read "${image_file}">/dev/null 2>&1
 fi
-current_flags=$(futility gbb -s --flags "${image_file}" 2>/dev/null \
+current_flags=$(futility gbb -g --flags "${image_file}" 2>/dev/null \
     | tail -n 1 \
     | grep -oE '0x[0-9a-fA-F]+')
 init_selected_from_mask "$current_flags"
@@ -322,9 +322,10 @@ flags=$(calculate_gbb_mask)
         read -n 1 -rp "Enter: " gbbask
         if [ "$gbbask" = "Y" ] || [ "$gbbask" = "y" ]; then
             clear
-            echo "writing gbb flags $flags, last chance!!!!!! PRESS CTRL + C TO CANCEL"
+            echo "Writing gbb flags $flags in 3 seconds, last chance!!!!!! PRESS CTRL + C TO CANCEL"
             sleep 3
-            
+            clear
+            echo "Writing $flags, should take ~30 seconds at most"
             image_file="${FLAGS_file}"
             if [ -z "${image_file}" ]; then
                 image_file="$(make_temp_file)"
