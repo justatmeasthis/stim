@@ -194,7 +194,7 @@ unkeyroll() {
         image_file="$(make_temp_file)"
         flashrom_read "${image_file}">/dev/null 2>&1
     fi
-    futility gbb -s --r="$fullpath/dedede_recovery_v1.vbpubk" "${image_file}">/dev/null 2>&1
+    futility gbb -s -r="$fullpath/dedede_recovery_v1.vbpubk" "${image_file}">/dev/null 2>&1
     flashrom_write "${image_file}">/dev/null 2>&1
     clear
     echo "done!"
