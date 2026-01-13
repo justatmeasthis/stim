@@ -21,7 +21,7 @@ daub() {
         echo "1) Block updates"
         echo -e "2) Go back to ${BLUE}STIM${RESET}"
         echo "3) Reboot"
-        read -ep "Choose option: " choice
+        read -n 1 -rp "Enter: " choice
 
         case $choice in
             1)
@@ -258,7 +258,7 @@ tput civis
 stty -echo -icanon time 0 min 0
 
 while true; do
-  draw
+  draw4gbb
 
     if ! read -rsn1 key; then
         clean
@@ -368,7 +368,7 @@ clean() {
   tput cnorm 2>/dev/null
 }
 
-draw() {
+draw4gbb() {
   clear
   echo "Use ↑ ↓ to move, Enter to toggle, q to write flags"
   echo "GBB mask: $(calculate_gbb_mask)"
