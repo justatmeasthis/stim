@@ -196,6 +196,17 @@ unkeyroll() {
     break
 }
 
+make_temp_file() {
+  mktemp
+}
+
+flashrom_read() {
+  flashrom -p host -i GBB -r "$1"
+}
+
+flashrom_write() {
+  flashrom -p host -i GBB -w "$1"
+}
 # wpdisloop payload, all it does is count how many times it tried disabling wp (really only useful for pencil method)
 wpdisloop() {
     failedwp=0
@@ -306,7 +317,14 @@ flags=$(calculate_gbb_mask)
             clear
             echo "writing gbb flags $flags, last chance!!!!!! PRESS CTRL + C TO CANCEL"
             sleep 3
-            futility gbb -s --flash --flags=$flags>/dev/null 2>&1
+            
+            image_file="${FLAGS_file}"
+            if [ -z "${image_file}" ]; then
+                image_file="$(make_temp_file)"
+                flashrom_read "${image_file}"
+            fi
+            futility gbb -s --flags=$flags "${image_file}"
+            flashrom_write "${image_file}"
             echo "Wrote flags $flags."
             sleep 1
             break 2
