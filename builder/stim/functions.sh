@@ -187,9 +187,15 @@ daub() {
 
 # unkeyroll payload, literally just uses the futility command to roll the keys back to what it used to be
 unkeyroll() {
-    echo -e "${RED}Flashing key${RESET}"
+    echo -e "${RED}Flashing key${RESET} DO NOT POWER OFF OR CTRL + C"
     sleep 2
-    futility gbb -s --flash --r="$fullpath/dedede_recovery_v1.vbpubk">/dev/null 2>&1
+    image_file="${FLAGS_file}"
+    if [ -z "${image_file}" ]; then
+        image_file="$(make_temp_file)"
+        flashrom_read "${image_file}">/dev/null 2>&1
+    fi
+    futility gbb -s --r="$fullpath/dedede_recovery_v1.vbpubk" "${image_file}">/dev/null 2>&1
+    flashrom_write "${image_file}">/dev/null 2>&1
     clear
     echo "done!"
     sleep 1
@@ -325,7 +331,7 @@ flags=$(calculate_gbb_mask)
             echo "Writing gbb flags $flags in 3 seconds, last chance!!!!!! PRESS CTRL + C TO CANCEL"
             sleep 3
             clear
-            echo "Writing $flags, should take ~30 seconds at most"
+            echo "Writing $flags, should take ~30 seconds at most, DO NOT POWER OFF OR CTRL + C"
             image_file="${FLAGS_file}"
             if [ -z "${image_file}" ]; then
                 image_file="$(make_temp_file)"
