@@ -150,17 +150,14 @@ eyeascii() {
 
 # --------------DEBUG INFO!!!--------------
 
-milestone=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_CHROME_MILESTONE")
-version=$(cat /etc/lsb-release | grep "CHROMEOS_RELEASE_DESCRIPTION")
 snvpd=$(vpd -i RO_VPD -l  | head -n 6 | tail -n 1)
 sdsdns=$(vpd -i RO_VPD -l  | tail -n 1)
 kernver=$(crossystem tpm_kernver)
 dbu=$(crossystem dev_boot_usb)
-dba=$(crossystem dev_boot_altfw)
 hwid=$(crossystem hwid)
 fwid=$(crossystem fwid)
 ro_fwid=$(crossystem ro_fwid)
-fwver=$(crossystem act_fwver)
+fwver=$(crossystem tpm_fwver)
 gbbfldbg=$(futility gbb -g --flash --flags 2>/dev/null \
 | tail -n 1 \
 | grep -oE '0x[0-9a-fA-F]+')
@@ -172,7 +169,7 @@ if flashrom --wp-disable>/dev/null 2>&1; then
     wp="off"
     clear
 else
-    wp="off"
+    wp="on"
     clear
 fi
 
