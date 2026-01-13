@@ -19,7 +19,7 @@ BRIGHT_BLUE='\e[96m'
 
 fullpath="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 amiinchromeos=$(crossystem minios_priority | head -n 2 | tail -n 1)
-if [ "$amiinchromeos" = "Usage:"]; then
+if [ "$amiinchromeos" = "Usage:" ]; then
     test='0'    
 else
     test="1"
