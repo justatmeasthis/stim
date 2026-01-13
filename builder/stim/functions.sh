@@ -238,6 +238,19 @@ ic() {
     stty -echo -icanon time 0 min 0
 }
 # gbbflagger, a bash port of olybs gbb flaginator
+draw4gbb() {
+  clear
+  echo "Use ↑ ↓ to move, Enter to toggle, q to write flags"
+  echo "GBB mask: $(calculate_gbb_mask)"
+  echo
+
+  for i in "${!items[@]}"; do
+    [[ $i -eq $current ]] && printf "> " || printf "  "
+    [[ ${selected[$i]} -eq 1 ]] && printf "[x] " || printf "[ ] "
+    echo "${items[$i]}"
+  done
+}
+
 gbbflagger() {
 items=(
     "Shorten dev screen timeout to 2 seconds"
@@ -403,15 +416,3 @@ clean() {
   tput cnorm 2>/dev/null
 }
 
-draw4gbb() {
-  clear
-  echo "Use ↑ ↓ to move, Enter to toggle, q to write flags"
-  echo "GBB mask: $(calculate_gbb_mask)"
-  echo
-
-  for i in "${!items[@]}"; do
-    [[ $i -eq $current ]] && printf "> " || printf "  "
-    [[ ${selected[$i]} -eq 1 ]] && printf "[x] " || printf "[ ] "
-    echo "${items[$i]}"
-  done
-}
