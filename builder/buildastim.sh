@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ "$2" = "-nosuppress" ]; then
+	nosuppress="nosuppress"
+fi
+
 SCRIPT_DIR=$(dirname "$0")
 VERSION=1.0.0
 HOST_ARCH=$(uname -m)
@@ -29,8 +33,8 @@ LOOPDEV="$(losetup -f)"
 IMG="$1"
 
 echo "creds 2 olyb & kxtz. im highkey too lazy to code this on my own so i took it for my self, ty!!"
-
-sleep 1
+echo 'Want debug info? add the -nosuppress flag like this "sudo bash /path/to/buildastim.sh/ /path/to/bin/ -nosuppress" when executing this script!'
+sleep 3
 clear
 # Since the files arent writable unless you do "make kvs" (which if you cant tell we're in stim not kvs) we have to give execute perms to these bins
 log "giving write perms lol"
