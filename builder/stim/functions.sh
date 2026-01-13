@@ -254,7 +254,14 @@ items=(
 # Selection state (0 = off, 1 = on)
 selected=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
 
-current_flags=$(read_current_flags)
+image_file="${FLAGS_file}"
+if [ -z "${image_file}" ]; then
+    image_file="$(make_temp_file)"
+    flashrom_read "${image_file}">/dev/null 2>&1
+fi
+current_flags=$(futility gbb -s --flags "${image_file}" 2>/dev/null \
+    | tail -n 1 \
+    | grep -oE '0x[0-9a-fA-F]+')
 init_selected_from_mask "$current_flags"
 
 current=0
@@ -321,10 +328,10 @@ flags=$(calculate_gbb_mask)
             image_file="${FLAGS_file}"
             if [ -z "${image_file}" ]; then
                 image_file="$(make_temp_file)"
-                flashrom_read "${image_file}"
+                flashrom_read "${image_file}">/dev/null 2>&1
             fi
-            futility gbb -s --flags=$flags "${image_file}"
-            flashrom_write "${image_file}"
+            futility gbb -s --flags=$flags "${image_file}">/dev/null 2>&1
+            flashrom_write "${image_file}">/dev/null 2>&1
             echo "Wrote flags $flags."
             sleep 1
             break 2
