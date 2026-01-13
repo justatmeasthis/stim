@@ -34,7 +34,7 @@ sleep 1
 clear
 # we need this before we re-create stateful
 STATE_START=$("$CGPT" show "$IMG" | grep "STATE" | awk '{print $1}')
-suppress shrink_partitions "$IMG"
+suppress srnk_part "$IMG"
 losetup -P "$LOOPDEV" "$IMG"
 enable_rw_mount "${LOOPDEV}p3"
 
