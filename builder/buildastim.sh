@@ -73,5 +73,5 @@ ss
 trnk_img "$IMG"
 ss
 
-log "Done stimming computer"
+log "Done stimming bin"
 trap - EXIT
