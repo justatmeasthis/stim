@@ -223,7 +223,7 @@ injcrt() {
 	suppress mount "$LOOPDEV"p3 "$ROOT_MNT"
 	echo "Copying files.."
 	cp -r "$SCRIPT_DIR/../build/$TARGET_ARCH/." "$ROOT_MNT"
-	suppress cp -r "$SCRIPT_DIR/stim/STIMRECODE" "$ROOT_MNT/usr/sbin/factory_install.sh"
+	suppress cp -r "$SCRIPT_DIR/stim/STIMRECODE.sh" "$ROOT_MNT/usr/sbin/factory_install.sh"
 	suppress cp -r "$SCRIPT_DIR/stim/dedede_recovery_v1.vbpubk" "$ROOT_MNT/usr/sbin/dedede_recovery_v1.vbpubk"
 
 	# echo "Removing tcsd & trunksd.."
