@@ -372,7 +372,7 @@ flags=$(calculate_gbb_mask)
         if [ "$gbbask" = "Y" ] || [ "$gbbask" = "y" ]; then
             clear
             ic
-            trap 'clear; echo "Cancelled writing GBB flags, no changes have been made"; cancelgbbflag=1' INT
+            trap 'clear; echo "Cancelled writing GBB flags, no changes have been made"; cancelgbbflag=1;' INT
             echo "Writing gbb flags $flags in 3 seconds, last chance!!!!!! PRESS CTRL + C TO CANCEL"
             sleep 3
             if [ -z "$cancelgbbflag" ]; then    
