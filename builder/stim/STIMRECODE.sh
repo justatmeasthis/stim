@@ -38,7 +38,7 @@ if [ "$amiinchromeos" = "Usage:" ]; then
     echo "Detected running VT-2 on external disk, fully giving access to all scripts :D"
     sleep 3
     clean
-elif [ "$amiinchromeos" = A] || [ "$amiinchromeos" = B] || [ "$amiinchromeos" = a] || [ "$amiinchromeos" = b]; then
+elif [ "$amiinchromeos" = "A" ] || [ "$amiinchromeos" = "B" ] || [ "$amiinchromeos" = "a" ] || [ "$amiinchromeos" = "b" ]; then
     test="1"
     chromeos="1"
     while true; do
