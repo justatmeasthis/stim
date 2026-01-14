@@ -187,22 +187,31 @@ daub() {
 
 # unkeyroll payload, literally just uses the futility command to roll the keys back to what it used to be
 unkeyroll() {
-    echo "Hey twin, unkeyrolling is kinda useless if your running this rn, ill start the script in 6 seconds, if you change your mind in the meantime, press CTRL+C"
-    echo -e "${RED}Flashing key${RESET} DO NOT POWER OFF OR CTRL + C"
-    sleep 2
-    image_file="${FLAGS_file}"
-    if [ -z "${image_file}" ]; then
-        image_file="$(make_temp_file)"
-        flashrom_read "${image_file}">/dev/null 2>&1
+    trap 'clear; echo "Skipped keyrolling"; skipunkeyroll=1' INT
+    echo "Hey twin, unkeyrolling is kinda a waste of time if your running this in the first place. I'll still run the script in 6 seconds. But in the meantime Press CTRL + C if you'd like to cancel."
+    sleep 8
+    trap '' INT
+    if [ -z $skipunkeyroll ]; then
+        echo -e "${RED}Flashing key${RESET} DO NOT POWER OFF OR YOU MAY RISK BRICKING (temporarily disabling ctrl + c)"
+        image_file="${FLAGS_file}"
+        if [ -z "${image_file}" ]; then
+            image_file="$(make_temp_file)"
+            flashrom_read "${image_file}">/dev/null 2>&1
+        fi
+        futility gbb -s --recoverykey=$fullpath/dedede_recovery_v1.vbpubk" "${image_file}>/dev/null 2>&1
+        flashrom_write "${image_file}">/dev/null 2>&1
     fi
-    futility gbb -s --recoverykey="$fullpath/dedede_recovery_v1.vbpubk" "${image_file}">/dev/null 2>&1
-    flashrom_write "${image_file}">/dev/null 2>&1
-    clear
-    echo "done!"
-    sleep 1
-    break
+    if [ "$skipunkeyroll" = "1" ]; then
+        sleep 1
+        trap - INT
+    else
+        clear
+        echo "Done!"
+        sleep 1
+        trap - INT
+        break
+    fi
 }
-
 make_temp_file() {
   mktemp
 }
@@ -214,13 +223,17 @@ flashrom_read() {
 flashrom_write() {
   flashrom -p host -i GBB -w "$1"
 }
+
 # wpdisloop payload, all it does is count how many times it tried disabling wp (really only useful for pencil method)
 wpdisloop() {
+    if [ -z $failedwp ]; then
     failedwp=0
+    fi
+    trap 'clear; echo "Cancelling loop after $failedwp tries :("; sleep 1; break;' INT
     while true; do
         clear
         echo -e "Press CTRL + C to cancel"
-        if flashrom --wp-disable; then
+        if flashrom --wp-disable>/dev/null 2>&1; then
             clear
             echo -e "${GREEN}SUCCESSSSSSSSSS YAYYYYYYYYY${RESET} (It took ${BRIGHT_BLUE}$failedwp${RESET} tries, cool!)"
             sleep 3
@@ -231,16 +244,14 @@ wpdisloop() {
             sleep 0.25
         fi
     done
+    trap - INT
 }
 
-ic() {
-    tput civis
-    stty -echo -icanon time 0 min 0
-}
+
 # gbbflagger, a bash port of olybs gbb flaginator
 draw4gbb() {
   clear
-  echo "Use ↑ ↓ to move, Enter to toggle, q to write flags"
+  echo "Use ↑ ↓ to move, Enter to toggle, q to write flags, b to exit"
   echo "GBB mask: $(calculate_gbb_mask)"
   echo
 
@@ -250,7 +261,6 @@ draw4gbb() {
     echo "${items[$i]}"
   done
 }
-
 gbbflagger() {
 items=(
     "Shorten dev screen timeout to 2 seconds"
@@ -275,15 +285,20 @@ items=(
 
 # Selection state (0 = off, 1 = on)
 selected=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0)
-
-image_file="${FLAGS_file}"
-if [ -z "${image_file}" ]; then
-    image_file="$(make_temp_file)"
-    flashrom_read "${image_file}">/dev/null 2>&1
+if [ "$test" = "0"]; then
+    image_file="${FLAGS_file}"
+    if [ -z "${image_file}" ]; then
+        image_file="$(make_temp_file)"
+        flashrom_read "${image_file}">/dev/null 2>&1
+    fi
+    current_flags=$(futility gbb -g --flags "${image_file}" 2>/dev/null \
+        | tail -n 1 \
+        | grep -oE '0x[0-9a-fA-F]+')
+else
+    current_flags=$(futility gbb -g --flash --flags 2>/dev/null \
+        | tail -n 1 \
+        | grep -oE '0x[0-9a-fA-F]+')
 fi
-current_flags=$(futility gbb -g --flags "${image_file}" 2>/dev/null \
-    | tail -n 1 \
-    | grep -oE '0x[0-9a-fA-F]+')
 init_selected_from_mask "$current_flags"
 
 current=0
@@ -309,7 +324,11 @@ while true; do
   case "$key" in
     q)
       break
-      ;;
+    ;;
+    b)
+        donotwrite=1
+        break
+    ;;
     "") # Enter
       selected[$current]=$((1 - selected[$current]))
       ;;
@@ -338,26 +357,55 @@ calculate_gbb_mask
 clear
 flags=$(calculate_gbb_mask)
     while true; do
+        if [ "$donotwrite" = "1" ] || [ "$chromeos" = "0" ] || [ "$wp" = "on" ]; then
+            echo "The selected flags were, $flags, exiting now. (Not writing gbb flags)"
+            flags=$current_flags
+            mask=$flags
+            donotwrite=0
+            sleep 3
+            break
+        fi
         clear
         clean
         echo -e "Write flags $flags? (Y/N)"
         read -n 1 -rp "Enter: " gbbask
         if [ "$gbbask" = "Y" ] || [ "$gbbask" = "y" ]; then
             clear
+            ic
+            trap 'clear; echo "Cancelled writing GBB flags, no changes have been made"; cancelgbbflag=1' INT
             echo "Writing gbb flags $flags in 3 seconds, last chance!!!!!! PRESS CTRL + C TO CANCEL"
             sleep 3
+            if [ -z "$cancelgbbflag" ]; then    
             clear
-            echo "Writing $flags, should take ~30 seconds at most, DO NOT POWER OFF OR CTRL + C"
-            image_file="${FLAGS_file}"
-            if [ -z "${image_file}" ]; then
-                image_file="$(make_temp_file)"
-                flashrom_read "${image_file}">/dev/null 2>&1
+            trap '' INT
+            echo "Writing $flags, if in mini os itll take ~30 seconds at most. If your in chrome os then you shouldnt be able to see this unless you have REALLY good eye sight. (temporily disabling ctrl + c)"
+            if [ "$test" = "0" ]; then
+                image_file="${FLAGS_file}"
+                if [ -z "${image_file}" ]; then
+                    image_file="$(make_temp_file)"
+                    flashrom_read "${image_file}">/dev/null 2>&1
+                fi
+                futility gbb -s --flags=$flags "${image_file}">/dev/null 2>&1
+                flashrom_write "${image_file}">/dev/null 2>&1
+            else
+                futility gbb -s --flash --flags=$flags>/dev/null 2>&1
             fi
-            futility gbb -s --flags=$flags "${image_file}">/dev/null 2>&1
-            flashrom_write "${image_file}">/dev/null 2>&1
+            clear
             echo "Wrote flags $flags."
+            flags=$current_flags
+            mask=$flags
+            trap - INT
             sleep 1
+            clean
             break 2
+        fi
+        ic
+        sleep 1
+        flags=$current_flags
+        mask=$flags
+        trap - INT
+        clean
+        break 2
         elif [ "$gbbask" = "N" ] || [ "$gbbask" = "n" ]; then
             clear
             echo "Exiting script..."
@@ -411,8 +459,4 @@ read_current_flags() {
 
 declare -A picked
 
-clean() {
-  stty sane 2>/dev/null
-  tput cnorm 2>/dev/null
-}
 
