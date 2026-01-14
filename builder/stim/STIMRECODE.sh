@@ -48,6 +48,7 @@ elif [ "$amiinchromeos" = "A" ] || [ "$amiinchromeos" = "B" ] || [ "$amiinchrome
         if [ "$testwarn" = "Y" ] || [ "$testwarn" = "y" ]; then
             clean
             ic
+            clear
             echo "Proceeding..."
             sleep 3
             clean
